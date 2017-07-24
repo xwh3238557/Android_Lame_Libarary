@@ -1,4 +1,4 @@
-package com.libs.wenhaoxia.lametest;
+package com.libs.wenhaoxia.lame;
 
 import org.junit.Test;
 

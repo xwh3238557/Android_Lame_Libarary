@@ -1,4 +1,4 @@
-package com.libs.wenhaoxia.lametest;
+package com.libs.wenhaoxia.lame;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
