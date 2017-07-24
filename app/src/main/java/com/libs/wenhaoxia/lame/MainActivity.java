@@ -19,7 +19,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         onBindViews();
-        final LameLib l = new LameLib();
+        final LameLib l = new LameLib(new LameLib.Callback() {
+            @Override
+            public void onStart() {
+
+            }
+
+            @Override
+            public void onProgressChange(long progress, long total) {
+
+            }
+
+            @Override
+            public void onError(int errorCode, String errorMessage) {
+
+            }
+
+            @Override
+            public void onFinished() {
+
+            }
+        });
 
         convertButton.setOnClickListener(new View.OnClickListener() {
             @Override
