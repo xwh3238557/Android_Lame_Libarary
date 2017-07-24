@@ -35,13 +35,12 @@ void endParse();
 void onError(JNIEnv *, jobject, int, string);
 
 /**
- * call when we need to tell java side we have some error
- * @param env java enviroment
- * @param jobj java instance object
- * @param errorCode errorcode of this error
- * @param errorMessage detail of the error
+ * invoke when encoding finished
+ * @param env
+ * @param jobj
  */
-void callJavaOnError(JNIEnv *, jobject, int, string);
+void onFinished(JNIEnv *env, jobject jobj);
+
 
 /**
  * invoke when we need to tell the java side the parse process
@@ -50,7 +49,12 @@ void callJavaOnError(JNIEnv *, jobject, int, string);
  * @param progress current dealed size of the file
  * @param total total size of the file
  */
-void javaProgressCallback(JNIEnv *, jobject, long, long);
+void onProgressChange(JNIEnv *, jobject, long, long);
+
+/**
+ * call when it start to encoding
+ */
+void onStart(JNIEnv *, jobject);
 
 /*
  * Class:     com_libs_wenhaoxia_lametest_LameLib

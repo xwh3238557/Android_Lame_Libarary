@@ -30,19 +30,19 @@ void endParse() {
 }
 
 
-void onError(JNIEnv *env, jobject object, int errorCode, string errorMessage) {
-    callJavaOnError(env, object, errorCode, errorMessage);
+void onStart(JNIEnv * env, jobject jobj) {
+    jmethodID onStartMethodId = env->GetMethodID(env->GetObjectClass(jobj), "onStart", "()V");
+    env->CallVoidMethod(jobj, onStartMethodId);
 }
 
-
-void javaProgressCallback(JNIEnv *env, jobject jobj, long progress, long total) {
+void onProgressChange(JNIEnv *env, jobject jobj, long progress, long total) {
     jclass clazz = env->GetObjectClass(jobj);
-    jmethodID setProgressMethodId = env->GetMethodID(clazz, "setProgress", "(II)V");
+    jmethodID setProgressMethodId = env->GetMethodID(clazz, "onProgressChange", "(JJ)V");
     env->CallVoidMethod(jobj, setProgressMethodId, progress, total);
 }
 
 
-void callJavaOnError(JNIEnv *env, jobject jobj, int errorCode, string errorMessage) {
+void onError(JNIEnv *env, jobject jobj, int errorCode, string errorMessage) {
     jclass clazz = env->GetObjectClass(jobj);
     jstring jErrorMessage = env->NewStringUTF(errorMessage.c_str());
     jmethodID onErrorMethodId = env->GetMethodID(clazz, "onError", "(ILjava/lang/String;)V");
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_com_libs_wenhaoxia_lametest_LameLib_convertWav2Mp3
 
     ifstream wavFStream(wavFilePath.c_str(), ios::binary);
     if (!wavFStream.is_open()) {
-        callJavaOnError(env, jobj, ERROR_CODE_FILE_NOT_FOUND, "File not found");
+        onError(env, jobj, ERROR_CODE_FILE_NOT_FOUND, "File not found");
         endParse();
         return;
     }
@@ -93,7 +93,13 @@ JNIEXPORT void JNICALL Java_com_libs_wenhaoxia_lametest_LameLib_convertWav2Mp3
 
     int wavBufferSize = 8192 * sizeof(char) / sizeof(short);
 
+    bool  isFirst = true;
     do {
+        if (isFirst) {
+            isFirst = false;
+            onStart(env, jobj);
+        }
+
         wavFStream.read((char *) wavBuffer, wavBufferSize);
         readLength = (int) wavFStream.gcount();
         writeLength = lame_encode_buffer_interleaved(lame, (short int *) wavBuffer,
@@ -106,16 +112,23 @@ JNIEXPORT void JNICALL Java_com_libs_wenhaoxia_lametest_LameLib_convertWav2Mp3
             //this means the file reached the end
             currentProgress = total;
         }
-        javaProgressCallback(env, jobj, currentProgress, total);
+        onProgressChange(env, jobj, currentProgress, total);
     } while (!wavFStream.eof());
 
     lame_encode_flush(lame, (unsigned char *) mp3Buffer, 1024);
+
+    onFinished(env, jobj);
 
     lame_close(lame);
     wavFStream.close();
     mp3FStream.close();
 
     endParse();
+}
+
+void onFinished(JNIEnv *env, jobject jobj) {
+    jmethodID  onFinishedMethodID = env->GetMethodID(env->GetObjectClass(jobj), "onFinished", "()V");
+    env->CallVoidMethod(jobj, onFinishedMethodID);
 }
 
 JNIEXPORT jstring JNICALL Java_com_libs_wenhaoxia_lametest_LameLib_version
